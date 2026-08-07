@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
 import pollRoutes from "./routes/polls.js";
 import adminPollRoutes from "./routes/adminPolls.js";
+import caseRoutes from "./routes/cases.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/polls", pollRoutes);
 app.use("/api/admin/polls", adminPollRoutes);
+app.use("/api/cases", caseRoutes);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 

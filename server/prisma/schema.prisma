@@ -28,12 +28,23 @@ model User {
   politicalLeaning   String? // "izquierda" | "centro" | "derecha" | "apolitico"
   religion           String? // "catolico" | "cristiano" | "musulman" | "judio" | "ateo_agnostico" | "otro"
 
-  votes Vote[]
+  votes    Vote[]
+  comments Comment[]
+}
+
+model Case {
+  id          String   @id @default(cuid())
+  title       String
+  body        String // narrativa completa; parrafos separados por doble salto de linea
+  sourceLinks Json? // [{ "label": "...", "url": "..." }], opcional
+  createdAt   DateTime @default(now())
+
+  polls Poll[]
 }
 
 model Poll {
   id        String   @id @default(cuid())
-  category  String // "general" | "politics" | "technology" | "videogames" | "sexuality"
+  category  String // "general" | "politics" | "technology" | "videogames" | "sexuality" | "entertainment"
   question  String
   // Si esta seteada, la encuesta es "pareada" (deteccion de honestidad): la
   // pregunta de control reutiliza el MISMO set de PollOption que la principal.
@@ -43,11 +54,17 @@ model Poll {
   // "sexuality" | "politicalLeaning" | "religion") — incentiva completar el
   // perfil a cambio de desbloquear mas encuestas.
   requiredProfileField String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  // Si esta seteado, la pregunta pertenece a un caso narrado (varias
+  // preguntas pueden compartir el mismo caso). SetNull: borrar el caso no
+  // borra las preguntas, solo las deja sueltas.
+  caseId    String?
+  case      Case?    @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  options PollOption[]
-  votes   Vote[]
+  options  PollOption[]
+  votes    Vote[]
+  comments Comment[]
 }
 
 model PollOption {
@@ -76,4 +93,17 @@ model Vote {
 
   @@unique([pollId, userId]) // un voto por usuario por encuesta, sin cambiarlo (v1)
   @@index([pollId, optionId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  pollId    String
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+
+  poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([pollId])
 }

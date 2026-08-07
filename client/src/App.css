@@ -105,56 +105,75 @@
   margin: 1.2rem 0;
 }
 
-/* Chips (categorías) */
-.chip-row {
+/* Categorías (pestaña dedicada) */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.category-card {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.4rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.category-card:hover {
+  border-color: var(--primary);
+}
+
+.category-card-emoji {
+  font-size: 1.8rem;
+}
+
+/* Lista simple de encuestas (usada en Categorías) */
+.poll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.poll-list-item {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+}
+
+.poll-list-item:hover {
+  border-color: var(--primary);
+}
+
+.poll-list-item-question {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.poll-list-item-meta {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-bottom: 1.2rem;
-}
-
-.chip {
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  background: var(--surface-alt);
-  color: var(--text);
-  font-weight: 600;
-  font-size: 0.82rem;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-}
-
-.chip:hover {
-  border-color: var(--primary);
-}
-
-.chip-active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
-.chip-active:hover {
-  background: var(--primary-hover);
 }
 
 /* Feed tipo TikTok: una encuesta por pantalla, scroll-snap vertical nativo
-   (funciona con swipe tactil, scroll y trackpad sin ninguna libreria). */
-.swipe-feed {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.swipe-feed-chips {
-  flex-shrink: 0;
-  background: var(--bg);
-  padding: 1rem 1.2rem 0;
-}
-
+   (funciona con swipe tactil, scroll y trackpad sin ninguna libreria). Sin
+   chips de categoria — eso vive en la pestana Categorias. */
 .swipe-feed-scroll {
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   -webkit-overflow-scrolling: touch;
@@ -221,6 +240,81 @@
 .badge-counter {
   background: var(--warning-soft);
   color: var(--warning);
+}
+
+.badge-case {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
+/* Caso narrado (arriba de la pregunta, en el feed y en el detalle) */
+.case-block {
+  background: var(--surface-alt);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.case-block-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.case-block-body {
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.case-block-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.case-block-links a {
+  font-size: 0.82rem;
+}
+
+/* Comentarios */
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.comment-row {
+  background: var(--surface-alt);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+}
+
+.comment-meta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-hover);
+  margin-bottom: 0.25rem;
+}
+
+.comment-body {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.comment-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.comment-form textarea {
+  flex: 1;
 }
 
 /* Poll detail / vote form */
@@ -416,4 +510,48 @@
   text-align: center;
   padding: 3rem 1rem;
   color: var(--text-muted);
+}
+
+/* Admin: pagina de escritorio, deliberadamente FUERA del .app-frame movil —
+   es la herramienta de control de Luciano, no parte del feed. */
+.admin-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-topbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.admin-topbar-links a {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.admin-topbar-links a.active {
+  color: var(--primary);
+}
+
+.admin-topbar-links button {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.admin-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
 }

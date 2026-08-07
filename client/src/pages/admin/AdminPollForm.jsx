@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api } from "../api";
-import { CATEGORIES, PROFILE_FIELDS } from "../constants";
+import { api } from "../../api";
+import { CATEGORIES, PROFILE_FIELDS } from "../../constants";
 
 export default function AdminPollForm() {
   const { id } = useParams();
@@ -14,10 +14,16 @@ export default function AdminPollForm() {
   const [counterQuestion, setCounterQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [requiredProfileField, setRequiredProfileField] = useState("");
+  const [caseId, setCaseId] = useState("");
+  const [cases, setCases] = useState([]);
   const [totalVotes, setTotalVotes] = useState(0);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.listCases().then(setCases).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -30,6 +36,7 @@ export default function AdminPollForm() {
         setCounterQuestion(p.counterQuestion || "");
         setOptions(p.options.map((o) => o.label));
         setRequiredProfileField(p.requiredProfileField || "");
+        setCaseId(p.case?.id || "");
         setTotalVotes(p.totalVotes);
         setLoading(false);
       })
@@ -69,6 +76,7 @@ export default function AdminPollForm() {
       question: question.trim(),
       counterQuestion: hasCounter ? counterQuestion.trim() : "",
       requiredProfileField,
+      caseId,
     };
     if (!optionsLocked) payload.options = cleanedOptions;
 
@@ -165,6 +173,26 @@ export default function AdminPollForm() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="field">
+          <label>Caso (opcional)</label>
+          <select value={caseId} onChange={(e) => setCaseId(e.target.value)}>
+            <option value="">Ninguno — pregunta suelta</option>
+            {cases.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+          <p className="muted small" style={{ marginTop: "0.3rem" }}>
+            Si eliges un caso, la narrativa y las fuentes se muestran arriba de esta pregunta en el feed.
+            Créalo primero desde{" "}
+            <a href="/admin/casos" target="_blank" rel="noreferrer">
+              Casos
+            </a>{" "}
+            si todavía no existe.
+          </p>
         </div>
 
         {error && <p className="error">{error}</p>}

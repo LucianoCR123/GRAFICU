@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api";
-import { labelFor, CATEGORIES, PROFILE_FIELDS } from "../constants";
+import { api } from "../../api";
+import { labelFor, CATEGORIES, PROFILE_FIELDS } from "../../constants";
 
 export default function AdminPolls() {
   const [polls, setPolls] = useState(null);
@@ -47,6 +47,7 @@ export default function AdminPolls() {
                   {p.requiredProfileField
                     ? ` · requiere ${labelFor(PROFILE_FIELDS, p.requiredProfileField).toLowerCase()}`
                     : ""}
+                  {p.case ? ` · caso: ${p.case.title}` : ""}
                 </div>
               </div>
               <div className="admin-row-actions">

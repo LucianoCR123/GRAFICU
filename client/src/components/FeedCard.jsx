@@ -46,7 +46,24 @@ export default function FeedCard({ poll }) {
       <div className="feed-card-badges">
         <span className="badge">{labelFor(CATEGORIES, poll.category)}</span>
         {poll.hasCounterQuestion && <span className="badge badge-counter">Pregunta de control</span>}
+        {poll.case && <span className="badge badge-case">Caso</span>}
       </div>
+
+      {poll.case && (
+        <div className="case-block">
+          <div className="case-block-title">{poll.case.title}</div>
+          <div className="case-block-body">{poll.case.body}</div>
+          {poll.case.sourceLinks?.length > 0 && (
+            <div className="case-block-links">
+              {poll.case.sourceLinks.map((link, i) => (
+                <a key={i} href={link.url} target="_blank" rel="noreferrer">
+                  🔗 {link.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="feed-card-question">{poll.question}</div>
 

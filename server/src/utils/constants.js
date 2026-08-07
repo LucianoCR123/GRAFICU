@@ -1,7 +1,7 @@
 // Duplicado a proposito de client/src/constants.js (mismo patron que
 // LockIn: client y server no comparten codigo). Usado para validar inputs.
 
-export const CATEGORIES = ["general", "politics", "technology", "videogames", "sexuality"];
+export const CATEGORIES = ["general", "politics", "technology", "videogames", "sexuality", "entertainment"];
 
 export const GENDERS = ["mujer", "hombre", "otro", "prefiero_no_decir"];
 

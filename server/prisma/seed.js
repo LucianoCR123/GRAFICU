@@ -113,7 +113,75 @@ const POLLS = [
     counterQuestion: "¿Lo admitirías si tu pareja te preguntara?",
     options: ["Sí", "No"],
   },
+  // --- Caso: "empresario" (ver CASES abajo) ---
+  {
+    category: "general",
+    caseKey: "empresario",
+    question: "¿Consideras que esto fue abuso de poder, aunque ella haya accedido en su momento?",
+    options: ["Sí", "No", "Depende de las circunstancias"],
+  },
+  {
+    category: "general",
+    caseKey: "empresario",
+    question: "¿Debería haber consecuencias legales para él, a pesar de que ella dijo que sí en su momento?",
+    options: ["Sí, debería ser penalizado", "No, fue consensuado", "Depende de la diferencia de poder"],
+  },
+  {
+    category: "general",
+    caseKey: "empresario",
+    question: "¿El miedo a perder el trabajo invalida un consentimiento dado explícitamente?",
+    options: ["Sí, lo invalida", "No, un sí es un sí", "Depende del caso"],
+  },
+  // --- Entretenimiento ---
+  {
+    category: "entertainment",
+    question: "¿Cuál es tu serie favorita de Netflix?",
+    options: ["Stranger Things", "La Casa de Papel", "Wednesday", "Black Mirror", "Otra"],
+  },
+  {
+    category: "entertainment",
+    question: "¿Cuál plataforma de streaming usas más?",
+    options: ["Netflix", "HBO Max", "Disney+", "Amazon Prime", "Otra"],
+  },
+  {
+    category: "entertainment",
+    question: "¿Deberían cancelar más series después de una temporada mala?",
+    options: ["Sí", "No", "Depende"],
+  },
+  {
+    category: "entertainment",
+    question: "¿Qué es mejor: el libro o la adaptación en serie/película?",
+    options: ["El libro siempre", "La adaptación puede ser mejor", "Depende"],
+  },
+  {
+    category: "entertainment",
+    question: "¿Cuál es la mejor película de superhéroes de todos los tiempos?",
+    options: ["Marvel", "DC", "Otra", "No me gustan"],
+  },
+  {
+    category: "entertainment",
+    question: "¿Los spoilers son de mal gusto sin importar cuánto tiempo haya pasado?",
+    options: ["Sí, siempre", "No, después de un tiempo ya no aplica", "Depende del caso"],
+  },
+  {
+    category: "entertainment",
+    question: "¿Cuál reality show es el más adictivo?",
+    options: ["La Isla de las Tentaciones", "Love Island", "Gran Hermano", "No veo realities"],
+  },
 ];
+
+const CASES = {
+  empresario: {
+    title: "El empresario y la empleada: ¿abuso de poder o consentimiento?",
+    body: [
+      "Este es un caso compuesto (no corresponde a una persona o empresa real específica), pensado para explorar cómo piensa la gente sobre el consentimiento y las relaciones de poder.",
+      "Un empresario con una posición de autoridad significativa dentro de su compañía comienza a coquetear con una empleada. Ella accede: sale con él, va a su casa, y participa de manera consensuada en lo que ocurre entre ellos, sin objetar en ningún momento.",
+      "Años después, ella declara públicamente que lo ocurrido fue abuso. Explica que, aunque nunca dijo que no, su consentimiento estuvo condicionado por el miedo a perder su trabajo si se negaba. Él sostiene que todo fue consensuado y que nunca la presionó explícitamente.",
+      "¿Tú qué opinas?",
+    ].join("\n\n"),
+    sourceLinks: null,
+  },
+};
 
 async function main() {
   const adminEmail = "lucastanedarjr84@gmail.com";
@@ -133,6 +201,19 @@ async function main() {
   });
   console.log(`Admin listo: ${adminEmail} (cambia la password desde /perfil)`);
 
+  const caseIdByKey = {};
+  for (const [key, caseData] of Object.entries(CASES)) {
+    const existing = await prisma.case.findFirst({ where: { title: caseData.title } });
+    if (existing) {
+      console.log(`Caso ya existe, se omite: "${caseData.title}"`);
+      caseIdByKey[key] = existing.id;
+      continue;
+    }
+    const created = await prisma.case.create({ data: caseData });
+    caseIdByKey[key] = created.id;
+    console.log(`Caso creado: "${caseData.title}"`);
+  }
+
   for (const pollData of POLLS) {
     const existing = await prisma.poll.findFirst({ where: { question: pollData.question } });
     if (existing) {
@@ -146,6 +227,7 @@ async function main() {
           question: pollData.question,
           counterQuestion: pollData.counterQuestion || null,
           requiredProfileField: pollData.requiredProfileField || null,
+          caseId: pollData.caseKey ? caseIdByKey[pollData.caseKey] : null,
         },
       });
       await tx.pollOption.createMany({

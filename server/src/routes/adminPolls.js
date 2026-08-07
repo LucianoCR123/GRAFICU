@@ -14,7 +14,7 @@ function validateOptions(options) {
 }
 
 router.post("/", async (req, res) => {
-  const { category, question, options, counterQuestion, requiredProfileField } = req.body || {};
+  const { category, question, options, counterQuestion, requiredProfileField, caseId } = req.body || {};
 
   if (!category || !CATEGORIES.includes(category)) {
     return res.status(400).json({ error: "Categoría inválida" });
@@ -24,6 +24,10 @@ router.post("/", async (req, res) => {
   }
   if (requiredProfileField && !PROFILE_FIELDS.includes(requiredProfileField)) {
     return res.status(400).json({ error: "Campo de perfil requerido inválido" });
+  }
+  if (caseId) {
+    const caseExists = await prisma.case.findUnique({ where: { id: caseId } });
+    if (!caseExists) return res.status(400).json({ error: "Caso inválido" });
   }
   const optionsError = validateOptions(options);
   if (optionsError) return res.status(400).json({ error: optionsError });
@@ -37,6 +41,7 @@ router.post("/", async (req, res) => {
         question: question.trim(),
         counterQuestion: counterQuestion?.trim() || null,
         requiredProfileField: requiredProfileField || null,
+        caseId: caseId || null,
       },
     });
     await tx.pollOption.createMany({
@@ -49,7 +54,7 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { category, question, counterQuestion, options, requiredProfileField } = req.body || {};
+  const { category, question, counterQuestion, options, requiredProfileField, caseId } = req.body || {};
 
   const poll = await prisma.poll.findUnique({
     where: { id: req.params.id },
@@ -74,6 +79,13 @@ router.patch("/:id", async (req, res) => {
       return res.status(400).json({ error: "Campo de perfil requerido inválido" });
     }
     data.requiredProfileField = requiredProfileField || null;
+  }
+  if (caseId !== undefined) {
+    if (caseId) {
+      const caseExists = await prisma.case.findUnique({ where: { id: caseId } });
+      if (!caseExists) return res.status(400).json({ error: "Caso inválido" });
+    }
+    data.caseId = caseId || null;
   }
 
   if (options !== undefined) {

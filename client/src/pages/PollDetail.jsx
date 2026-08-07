@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import { labelFor, CATEGORIES, PROFILE_FIELD_PHRASES } from "../constants";
 import DemographicFilters from "../components/DemographicFilters";
 import ResultsChart from "../components/ResultsChart";
+import CommentSection from "../components/CommentSection";
 
 export default function PollDetail() {
   const { id } = useParams();
@@ -81,6 +82,23 @@ export default function PollDetail() {
         </Link>
       </p>
       <span className="badge">{labelFor(CATEGORIES, poll.category)}</span>
+
+      {poll.case && (
+        <div className="case-block" style={{ marginTop: "0.8rem" }}>
+          <div className="case-block-title">{poll.case.title}</div>
+          <div className="case-block-body">{poll.case.body}</div>
+          {poll.case.sourceLinks?.length > 0 && (
+            <div className="case-block-links">
+              {poll.case.sourceLinks.map((link, i) => (
+                <a key={i} href={link.url} target="_blank" rel="noreferrer">
+                  🔗 {link.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <h1>{poll.question}</h1>
 
       {!alreadyVoted && missingField && (
@@ -199,6 +217,8 @@ export default function PollDetail() {
           )}
         </div>
       )}
+
+      <CommentSection pollId={id} canComment={alreadyVoted} />
     </div>
   );
 }

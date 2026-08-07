@@ -44,7 +44,15 @@ export const api = {
   },
   vote: (id, payload) => request(`/polls/${id}/votes`, { method: "POST", body: payload }),
 
+  getComments: (id) => request(`/polls/${id}/comments`),
+  postComment: (id, body) => request(`/polls/${id}/comments`, { method: "POST", body: { body } }),
+
   adminCreatePoll: (payload) => request("/admin/polls", { method: "POST", body: payload }),
   adminUpdatePoll: (id, payload) => request(`/admin/polls/${id}`, { method: "PATCH", body: payload }),
   adminDeletePoll: (id) => request(`/admin/polls/${id}`, { method: "DELETE" }),
+
+  listCases: () => request("/cases"),
+  adminCreateCase: (payload) => request("/cases", { method: "POST", body: payload }),
+  adminUpdateCase: (id, payload) => request(`/cases/${id}`, { method: "PATCH", body: payload }),
+  adminDeleteCase: (id) => request(`/cases/${id}`, { method: "DELETE" }),
 };

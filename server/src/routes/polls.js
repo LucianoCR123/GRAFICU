@@ -3,6 +3,7 @@ import { prisma } from "../db.js";
 import { requireAuth, attachUserIfPresent } from "../middleware/auth.js";
 import { CATEGORIES } from "../utils/constants.js";
 import { aggregatePollResults } from "../utils/results.js";
+import { anonCode } from "../utils/anon.js";
 
 const router = Router();
 
@@ -18,20 +19,28 @@ function serializePoll(poll, { myVote } = {}) {
     createdAt: poll.createdAt,
     options: poll.options.map((o) => ({ id: o.id, label: o.label })),
     myVote: myVote ?? null,
+    case: poll.case
+      ? { id: poll.case.id, title: poll.case.title, body: poll.case.body, sourceLinks: poll.case.sourceLinks || [] }
+      : null,
   };
 }
 
 router.get("/", attachUserIfPresent, async (req, res) => {
-  const { category, sort } = req.query;
+  const { category, sort, search } = req.query;
   if (category && !CATEGORIES.includes(category)) {
     return res.status(400).json({ error: "Categoría inválida" });
   }
 
+  const where = {};
+  if (category) where.category = category;
+  if (search) where.question = { contains: search, mode: "insensitive" };
+
   const polls = await prisma.poll.findMany({
-    where: category ? { category } : undefined,
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       options: { orderBy: { sortOrder: "asc" } },
+      case: true,
       _count: { select: { votes: true } },
     },
   });
@@ -88,6 +97,7 @@ router.get("/:id", attachUserIfPresent, async (req, res) => {
     where: { id: req.params.id },
     include: {
       options: { orderBy: { sortOrder: "asc" } },
+      case: true,
       _count: { select: { votes: true } },
     },
   });
@@ -102,6 +112,55 @@ router.get("/:id", attachUserIfPresent, async (req, res) => {
   }
 
   res.json(serializePoll(poll, { myVote }));
+});
+
+router.get("/:id/comments", async (req, res) => {
+  const comments = await prisma.comment.findMany({
+    where: { pollId: req.params.id },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, body: true, createdAt: true, userId: true },
+  });
+
+  const userIds = [...new Set(comments.map((c) => c.userId))];
+  // ANONIMATO: solo usamos userId internamente para calcular el codigo y
+  // buscar el voto — nunca sale en la respuesta.
+  const votes = await prisma.vote.findMany({
+    where: { pollId: req.params.id, userId: { in: userIds } },
+    select: { userId: true, option: { select: { label: true } } },
+  });
+  const voteByUser = Object.fromEntries(votes.map((v) => [v.userId, v.option.label]));
+
+  res.json(
+    comments.map((c) => ({
+      id: c.id,
+      body: c.body,
+      createdAt: c.createdAt,
+      code: anonCode(c.userId, req.params.id),
+      votedFor: voteByUser[c.userId] ?? null,
+    }))
+  );
+});
+
+router.post("/:id/comments", requireAuth, async (req, res) => {
+  const { body } = req.body || {};
+  if (!body || !body.trim()) return res.status(400).json({ error: "Falta el comentario" });
+  if (body.trim().length > 500) return res.status(400).json({ error: "Máximo 500 caracteres" });
+
+  const vote = await prisma.vote.findUnique({
+    where: { pollId_userId: { pollId: req.params.id, userId: req.user.id } },
+  });
+  if (!vote) return res.status(403).json({ error: "Debes votar antes de comentar" });
+
+  const comment = await prisma.comment.create({
+    data: { pollId: req.params.id, userId: req.user.id, body: body.trim() },
+  });
+
+  res.status(201).json({
+    id: comment.id,
+    body: comment.body,
+    createdAt: comment.createdAt,
+    code: anonCode(req.user.id, req.params.id),
+  });
 });
 
 router.get("/:id/results", async (req, res) => {

@@ -8,6 +8,7 @@ export const CATEGORIES = [
   { value: "technology", label: "Tecnología" },
   { value: "videogames", label: "Videojuegos" },
   { value: "sexuality", label: "Sexualidad" },
+  { value: "entertainment", label: "Entretenimiento" },
 ];
 
 export const GENDERS = [
@@ -65,6 +66,7 @@ export const CATEGORY_EMOJI = {
   technology: "💻",
   videogames: "🎮",
   sexuality: "🔥",
+  entertainment: "🍿",
 };
 
 export function labelFor(list, value) {
