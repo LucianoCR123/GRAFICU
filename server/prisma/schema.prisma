@@ -38,8 +38,13 @@ model Poll {
   // Si esta seteada, la encuesta es "pareada" (deteccion de honestidad): la
   // pregunta de control reutiliza el MISMO set de PollOption que la principal.
   counterQuestion String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  // Si esta seteado, solo se puede votar si el usuario ya lleno ese campo
+  // opcional de su perfil ("occupation" | "education" | "relationshipStatus" |
+  // "sexuality" | "politicalLeaning" | "religion") — incentiva completar el
+  // perfil a cambio de desbloquear mas encuestas.
+  requiredProfileField String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   options PollOption[]
   votes   Vote[]

@@ -30,7 +30,12 @@ export const api = {
   changePassword: (payload) => request("/auth/change-password", { method: "POST", body: payload }),
   deleteAccount: () => request("/auth/me", { method: "DELETE" }),
 
-  listPolls: (category) => request(`/polls${category ? `?category=${encodeURIComponent(category)}` : ""}`),
+  listPolls: (params = {}) => {
+    const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v));
+    const qs = new URLSearchParams(clean).toString();
+    return request(`/polls${qs ? `?${qs}` : ""}`);
+  },
+  myVotes: () => request("/polls/mine"),
   getPoll: (id) => request(`/polls/${id}`),
   getResults: (id, filters = {}) => {
     const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));

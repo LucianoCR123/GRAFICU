@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
-import { CATEGORIES } from "../constants";
+import { CATEGORIES, PROFILE_FIELDS } from "../constants";
 
 export default function AdminPollForm() {
   const { id } = useParams();
@@ -13,6 +13,7 @@ export default function AdminPollForm() {
   const [hasCounter, setHasCounter] = useState(false);
   const [counterQuestion, setCounterQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
+  const [requiredProfileField, setRequiredProfileField] = useState("");
   const [totalVotes, setTotalVotes] = useState(0);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -28,6 +29,7 @@ export default function AdminPollForm() {
         setHasCounter(Boolean(p.counterQuestion));
         setCounterQuestion(p.counterQuestion || "");
         setOptions(p.options.map((o) => o.label));
+        setRequiredProfileField(p.requiredProfileField || "");
         setTotalVotes(p.totalVotes);
         setLoading(false);
       })
@@ -66,6 +68,7 @@ export default function AdminPollForm() {
       category,
       question: question.trim(),
       counterQuestion: hasCounter ? counterQuestion.trim() : "",
+      requiredProfileField,
     };
     if (!optionsLocked) payload.options = cleanedOptions;
 
@@ -151,6 +154,18 @@ export default function AdminPollForm() {
             />
           </div>
         )}
+
+        <div className="field">
+          <label>¿Requiere info adicional del perfil para votar?</label>
+          <select value={requiredProfileField} onChange={(e) => setRequiredProfileField(e.target.value)}>
+            <option value="">Ninguna</option>
+            {PROFILE_FIELDS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {error && <p className="error">{error}</p>}
         <button type="submit" disabled={saving}>

@@ -59,6 +59,34 @@ export const RELIGION = [
   { value: "otro", label: "Otro" },
 ];
 
+export const CATEGORY_EMOJI = {
+  general: "🎲",
+  politics: "🗳️",
+  technology: "💻",
+  videogames: "🎮",
+  sexuality: "🔥",
+};
+
 export function labelFor(list, value) {
   return list.find((o) => o.value === value)?.label ?? value;
 }
+
+// Nombre humano (en frase, para usar dentro de "agrega X en tu perfil") de
+// cada campo opcional de perfil que una encuesta puede exigir para votar.
+export const PROFILE_FIELD_PHRASES = {
+  occupation: "tu ocupación",
+  education: "tu nivel de educación",
+  relationshipStatus: "tu estado civil",
+  sexuality: "tu sexualidad",
+  politicalLeaning: "tu orientación política",
+  religion: "tu religión",
+};
+
+export const PROFILE_FIELDS = [
+  { value: "occupation", label: "Ocupación" },
+  { value: "education", label: "Educación" },
+  { value: "relationshipStatus", label: "Estado civil" },
+  { value: "sexuality", label: "Sexualidad" },
+  { value: "politicalLeaning", label: "Orientación política" },
+  { value: "religion", label: "Religión" },
+];

@@ -57,6 +57,62 @@ const POLLS = [
     counterQuestion: "¿Se lo dirías a tu pareja si lo hicieras (o lo hiciste)?",
     options: ["Sí", "No"],
   },
+  {
+    category: "technology",
+    question: "¿La inteligencia artificial le va a quitar el trabajo a la gente de tu profesión?",
+    requiredProfileField: "occupation",
+    options: ["Sí, ya está pasando", "Sí, en unos años", "No, mi trabajo es seguro", "No sé"],
+  },
+  {
+    category: "politics",
+    question: "¿Estás a favor de la pena de muerte?",
+    counterQuestion: "¿Lo dirías en público frente a desconocidos?",
+    options: ["Sí", "No", "Depende del crimen"],
+  },
+  {
+    category: "general",
+    question: "¿Cuál es el mejor día de la semana?",
+    options: ["Viernes", "Sábado", "Domingo", "Lunes", "Otro"],
+  },
+  {
+    category: "sexuality",
+    question: "¿A qué edad perdiste la virginidad?",
+    options: ["Antes de los 15", "15-17", "18-21", "Después de los 21", "Aún no"],
+  },
+  {
+    category: "sexuality",
+    question: "¿Le has sido infiel a tu pareja?",
+    counterQuestion: "¿Se lo confesarías si te preguntara directamente?",
+    requiredProfileField: "relationshipStatus",
+    options: ["Sí", "No"],
+  },
+  {
+    category: "technology",
+    question: "¿Cuál red social usas más?",
+    options: ["Instagram", "TikTok", "X", "Facebook", "Otra"],
+  },
+  {
+    category: "videogames",
+    question: "¿Los videojuegos violentos vuelven violenta a la gente?",
+    options: ["Sí", "No", "Depende de la persona"],
+  },
+  {
+    category: "general",
+    question: "¿Crees que la universidad vale la pena?",
+    requiredProfileField: "education",
+    options: ["Sí, totalmente", "Depende de la carrera", "No, es una pérdida de tiempo/dinero"],
+  },
+  {
+    category: "politics",
+    question: "¿El gobierno de tu país está haciendo un buen trabajo?",
+    options: ["Sí", "No", "Más o menos"],
+  },
+  {
+    category: "sexuality",
+    question: "¿Ves pornografía regularmente?",
+    counterQuestion: "¿Lo admitirías si tu pareja te preguntara?",
+    options: ["Sí", "No"],
+  },
 ];
 
 async function main() {
@@ -89,6 +145,7 @@ async function main() {
           category: pollData.category,
           question: pollData.question,
           counterQuestion: pollData.counterQuestion || null,
+          requiredProfileField: pollData.requiredProfileField || null,
         },
       });
       await tx.pollOption.createMany({

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../AuthContext";
-import { labelFor, CATEGORIES } from "../constants";
+import { labelFor, CATEGORIES, PROFILE_FIELD_PHRASES } from "../constants";
 import DemographicFilters from "../components/DemographicFilters";
 import ResultsChart from "../components/ResultsChart";
 
@@ -71,6 +71,7 @@ export default function PollDetail() {
   if (!poll) return <div className="page muted">Cargando...</div>;
 
   const alreadyVoted = Boolean(poll.myVote);
+  const missingField = poll.requiredProfileField && user && !user[poll.requiredProfileField];
 
   return (
     <div className="page">
@@ -82,7 +83,19 @@ export default function PollDetail() {
       <span className="badge">{labelFor(CATEGORIES, poll.category)}</span>
       <h1>{poll.question}</h1>
 
-      {!alreadyVoted && (
+      {!alreadyVoted && missingField && (
+        <div className="card vote-locked-banner">
+          <p className="muted small">
+            Agrega {PROFILE_FIELD_PHRASES[poll.requiredProfileField]} en tu perfil para participar en
+            esta encuesta.
+          </p>
+          <Link to="/perfil">
+            <button type="button">Ir a perfil</button>
+          </Link>
+        </div>
+      )}
+
+      {!alreadyVoted && !missingField && (
         <form className="card" onSubmit={handleVote}>
           <div className="option-list">
             {poll.options.map((o) => (

@@ -6,19 +6,23 @@ import { aggregatePollResults } from "../utils/results.js";
 
 const router = Router();
 
-function serializePollSummary(poll) {
+function serializePoll(poll, { myVote } = {}) {
   return {
     id: poll.id,
     category: poll.category,
     question: poll.question,
+    counterQuestion: poll.counterQuestion,
+    requiredProfileField: poll.requiredProfileField,
     hasCounterQuestion: Boolean(poll.counterQuestion),
     totalVotes: poll._count.votes,
     createdAt: poll.createdAt,
+    options: poll.options.map((o) => ({ id: o.id, label: o.label })),
+    myVote: myVote ?? null,
   };
 }
 
-router.get("/", async (req, res) => {
-  const { category } = req.query;
+router.get("/", attachUserIfPresent, async (req, res) => {
+  const { category, sort } = req.query;
   if (category && !CATEGORIES.includes(category)) {
     return res.status(400).json({ error: "Categoría inválida" });
   }
@@ -26,10 +30,57 @@ router.get("/", async (req, res) => {
   const polls = await prisma.poll.findMany({
     where: category ? { category } : undefined,
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { votes: true } } },
+    include: {
+      options: { orderBy: { sortOrder: "asc" } },
+      _count: { select: { votes: true } },
+    },
   });
 
-  res.json(polls.map(serializePollSummary));
+  if (sort === "trending") {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentVotes = await prisma.vote.groupBy({
+      by: ["pollId"],
+      where: { createdAt: { gte: sevenDaysAgo } },
+      _count: true,
+    });
+    const trendCount = Object.fromEntries(recentVotes.map((v) => [v.pollId, v._count]));
+    polls.sort((a, b) => (trendCount[b.id] || 0) - (trendCount[a.id] || 0));
+  }
+
+  let myVotes = {};
+  if (req.user) {
+    const votes = await prisma.vote.findMany({
+      where: { userId: req.user.id, pollId: { in: polls.map((p) => p.id) } },
+    });
+    myVotes = Object.fromEntries(
+      votes.map((v) => [v.pollId, { optionId: v.optionId, counterOptionId: v.counterOptionId }])
+    );
+  }
+
+  res.json(polls.map((p) => serializePoll(p, { myVote: myVotes[p.id] })));
+});
+
+router.get("/mine", requireAuth, async (req, res) => {
+  const votes = await prisma.vote.findMany({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      poll: { select: { id: true, question: true, category: true, counterQuestion: true } },
+      option: { select: { label: true } },
+      counterOption: { select: { label: true } },
+    },
+  });
+
+  res.json(
+    votes.map((v) => ({
+      pollId: v.poll.id,
+      question: v.poll.question,
+      category: v.poll.category,
+      myAnswer: v.option.label,
+      myCounterAnswer: v.counterOption?.label ?? null,
+      votedAt: v.createdAt,
+    }))
+  );
 });
 
 router.get("/:id", attachUserIfPresent, async (req, res) => {
@@ -50,16 +101,7 @@ router.get("/:id", attachUserIfPresent, async (req, res) => {
     if (vote) myVote = { optionId: vote.optionId, counterOptionId: vote.counterOptionId };
   }
 
-  res.json({
-    id: poll.id,
-    category: poll.category,
-    question: poll.question,
-    counterQuestion: poll.counterQuestion,
-    createdAt: poll.createdAt,
-    totalVotes: poll._count.votes,
-    options: poll.options.map((o) => ({ id: o.id, label: o.label })),
-    myVote,
-  });
+  res.json(serializePoll(poll, { myVote }));
 });
 
 router.get("/:id/results", async (req, res) => {
@@ -108,6 +150,13 @@ router.post("/:id/votes", requireAuth, async (req, res) => {
     include: { options: true },
   });
   if (!poll) return res.status(404).json({ error: "Encuesta no encontrada" });
+
+  if (poll.requiredProfileField && !req.user[poll.requiredProfileField]) {
+    return res.status(403).json({
+      error: "Te falta completar un campo de tu perfil para votar en esta encuesta",
+      requiredProfileField: poll.requiredProfileField,
+    });
+  }
 
   const validOptionIds = new Set(poll.options.map((o) => o.id));
   if (!validOptionIds.has(optionId)) {

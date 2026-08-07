@@ -14,3 +14,14 @@ export const SEXUALITY = ["heterosexual", "homosexual", "bisexual", "otro", "pre
 export const POLITICAL_LEANING = ["izquierda", "centro", "derecha", "apolitico"];
 
 export const RELIGION = ["catolico", "cristiano", "musulman", "judio", "ateo_agnostico", "otro"];
+
+// Nombres de los campos opcionales de perfil que una encuesta puede exigir
+// para poder votar (Poll.requiredProfileField).
+export const PROFILE_FIELDS = [
+  "occupation",
+  "education",
+  "relationshipStatus",
+  "sexuality",
+  "politicalLeaning",
+  "religion",
+];

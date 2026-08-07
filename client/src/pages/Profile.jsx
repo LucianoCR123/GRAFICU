@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../AuthContext";
 import {
@@ -39,6 +39,16 @@ export default function Profile() {
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "" });
   const [pwStatus, setPwStatus] = useState("");
   const [pwError, setPwError] = useState("");
+
+  const [history, setHistory] = useState(null);
+  const [historyError, setHistoryError] = useState("");
+
+  useEffect(() => {
+    api
+      .myVotes()
+      .then(setHistory)
+      .catch((err) => setHistoryError(err.message));
+  }, []);
 
   const completedCount = OPTIONAL_FIELDS.filter((f) => user[f.key]).length;
 
@@ -86,6 +96,14 @@ export default function Profile() {
       <h1>Tu perfil</h1>
       <p className="muted">{user.email}</p>
 
+      {user.isAdmin && (
+        <Link to="/admin">
+          <button className="secondary" style={{ marginBottom: "1.4rem" }}>
+            Panel de admin
+          </button>
+        </Link>
+      )}
+
       <div className="profile-section card">
         <h2 style={{ marginTop: 0 }}>Tu información</h2>
         <form className="form" onSubmit={saveCore}>
@@ -128,8 +146,9 @@ export default function Profile() {
       <div className="profile-section card">
         <h2 style={{ marginTop: 0 }}>Agrega más info</h2>
         <p className="muted small">
-          Todo esto es opcional y siempre es anónimo — nadie ve tu nombre junto a tus votos. Mientras más
-          completes, más insights vas a poder ver desagregados en las encuestas.
+          Toda esta información es privada — nadie más la ve, y tus votos siempre son anónimos (nunca se
+          muestra tu nombre junto a lo que respondiste). Mientras más completes, más encuestas vas a poder
+          responder y más insights vas a poder ver desagregados.
         </p>
         <div className="profile-progress">
           <div className="progress-track">
@@ -193,6 +212,25 @@ export default function Profile() {
           {pwStatus && <p className="success">{pwStatus}</p>}
           <button type="submit">Actualizar contraseña</button>
         </form>
+      </div>
+
+      <div className="profile-section card">
+        <h2 style={{ marginTop: 0 }}>Tu historial</h2>
+        {historyError && <p className="error">{historyError}</p>}
+        {!history && !historyError && <p className="muted small">Cargando...</p>}
+        {history && history.length === 0 && (
+          <p className="muted small">Todavía no has votado en ninguna encuesta.</p>
+        )}
+        {history && history.length > 0 && (
+          <div className="history-list">
+            {history.map((h) => (
+              <Link to={`/encuestas/${h.pollId}`} key={h.pollId} className="history-row">
+                <div className="history-row-question">{h.question}</div>
+                <div className="muted small">Tu respuesta: {h.myAnswer}</div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       <button className="secondary" onClick={handleLogout}>

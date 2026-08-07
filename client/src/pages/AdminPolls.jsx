@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import { labelFor, CATEGORIES } from "../constants";
+import { labelFor, CATEGORIES, PROFILE_FIELDS } from "../constants";
 
 export default function AdminPolls() {
   const [polls, setPolls] = useState(null);
@@ -44,6 +44,9 @@ export default function AdminPolls() {
                 <div className="muted small">
                   {labelFor(CATEGORIES, p.category)} · {p.totalVotes} votos
                   {p.hasCounterQuestion ? " · con pregunta de control" : ""}
+                  {p.requiredProfileField
+                    ? ` · requiere ${labelFor(PROFILE_FIELDS, p.requiredProfileField).toLowerCase()}`
+                    : ""}
                 </div>
               </div>
               <div className="admin-row-actions">

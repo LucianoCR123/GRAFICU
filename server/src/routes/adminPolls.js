@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { requireAuth, requireAdmin } from "../middleware/auth.js";
-import { CATEGORIES } from "../utils/constants.js";
+import { CATEGORIES, PROFILE_FIELDS } from "../utils/constants.js";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
@@ -14,13 +14,16 @@ function validateOptions(options) {
 }
 
 router.post("/", async (req, res) => {
-  const { category, question, options, counterQuestion } = req.body || {};
+  const { category, question, options, counterQuestion, requiredProfileField } = req.body || {};
 
   if (!category || !CATEGORIES.includes(category)) {
     return res.status(400).json({ error: "Categoría inválida" });
   }
   if (!question || !question.trim()) {
     return res.status(400).json({ error: "Falta la pregunta" });
+  }
+  if (requiredProfileField && !PROFILE_FIELDS.includes(requiredProfileField)) {
+    return res.status(400).json({ error: "Campo de perfil requerido inválido" });
   }
   const optionsError = validateOptions(options);
   if (optionsError) return res.status(400).json({ error: optionsError });
@@ -33,6 +36,7 @@ router.post("/", async (req, res) => {
         category,
         question: question.trim(),
         counterQuestion: counterQuestion?.trim() || null,
+        requiredProfileField: requiredProfileField || null,
       },
     });
     await tx.pollOption.createMany({
@@ -45,7 +49,7 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { category, question, counterQuestion, options } = req.body || {};
+  const { category, question, counterQuestion, options, requiredProfileField } = req.body || {};
 
   const poll = await prisma.poll.findUnique({
     where: { id: req.params.id },
@@ -64,6 +68,12 @@ router.patch("/:id", async (req, res) => {
   }
   if (counterQuestion !== undefined) {
     data.counterQuestion = counterQuestion?.trim() || null;
+  }
+  if (requiredProfileField !== undefined) {
+    if (requiredProfileField && !PROFILE_FIELDS.includes(requiredProfileField)) {
+      return res.status(400).json({ error: "Campo de perfil requerido inválido" });
+    }
+    data.requiredProfileField = requiredProfileField || null;
   }
 
   if (options !== undefined) {
